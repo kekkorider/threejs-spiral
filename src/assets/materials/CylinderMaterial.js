@@ -1,4 +1,4 @@
-import { Fn, positionLocal, positionWorld, uniform, uv, vec3, hash, sin, color, mix, smoothstep, instanceIndex, step, float, normalWorld, cameraPosition, dot, time, texture } from 'three/tsl'
+import { Fn, positionLocal, positionWorld, uniform, uv, vec2, vec3, clamp, mx_cell_noise_float, color, mix, mul, cos, smoothstep, instanceIndex, step, float, normalWorld, cameraPosition, dot, time, texture } from 'three/tsl'
 import { MeshBasicNodeMaterial, DoubleSide, DataTexture, RedFormat, FloatType } from 'three/webgpu'
 
 export const CylinderMaterial = new MeshBasicNodeMaterial({
@@ -15,9 +15,18 @@ export const map = uniform(dummyTexture)
 export const distortA = uniform(0)
 export const distortB = uniform(0)
 export const fresnelPower = uniform(1.15)
-export const lineSeed = uniform(1)
+export const colorA = uniform(color(0.2, 0.4, 0.5))
+export const colorB = uniform(color(0.3, 0.5, 0.2))
+export const colorC = uniform(color(0.9, 0.5, 0.2))
+export const colorD = uniform(color(0.7, 0.7, 0.2))
 
 export const INSTANCE_COUNT = 16
+
+export const palette = Fn( ( [ t, a, b, c, d ] ) => {
+
+	return a.add( b.mul( cos( mul( 6.283185, c.mul( t ).add( d ) ) ) ) );
+
+}, { t: 'float', a: 'vec3', b: 'vec3', c: 'vec3', d: 'vec3', return: 'vec3' } );
 
 CylinderMaterial.positionNode = Fn(() => {
   const pos = positionLocal
@@ -58,36 +67,19 @@ CylinderMaterial.colorNode = Fn(() => {
   const colorFactor = smoothstep(3.5, 1.5, positionWorld.y.abs())
   colorFactor.mulAssign(d)
 
+  // Noise
+  const noise = mx_cell_noise_float(uv().mul(vec2(1, 11))).toVar()
+  noise.x.assign(clamp(noise.x, 0.2, 0.95))
+
+  const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD)
+
   // Line
-  // const lineUV = uv().toVar()
-  // const lineFreq = Math.PI * 46
-  // const lineAmplitude = float(0.1).add(uv().x.mul(2).sub(1).abs().mul(0.3))
-  // const lineSpeed = float(time).mul(2.3)
-  // const lineOpacity = smoothstep(0.95, 0.6, lineAmplitude)
-  // lineUV.y = lineUV.y.add(lineUV.x.mul(lineFreq).add(lineSpeed).sin().mul(lineAmplitude))
-  // const line = lineUV.y.sub(0.5).abs().smoothstep(0.024, 0.012)
-
-  // const lineMask = uv().y.sub(0.5).abs().smoothstep(0.05, 0.55)
-
-  // line.mulAssign(lineMask)
-
-  const lineSpeed = time.mul(0.05)
-  const lineVisibility = step(0.79, sin(uv().x.add(lineSpeed).mul(Math.PI * 4)).abs())
-  lineVisibility.addAssign(step(0.82, sin(uv().x.add(lineSpeed).mul(Math.PI * 11)).abs()))
-  lineVisibility.addAssign(step(0.9, sin(uv().x.add(lineSpeed).mul(Math.PI * 24)).abs()))
-
-  const lineTop = step(0.015, uv().y.sub(0.85).abs()).oneMinus()
-  lineTop.mulAssign(lineVisibility)
-
-  lineVisibility.assign(step(0.97, sin(uv().x.add(lineSpeed.mul(0.95)).mul(Math.PI * 4)).abs()))
-  lineVisibility.addAssign(step(0.84, sin(uv().x.add(lineSpeed.mul(0.95)).mul(Math.PI * 11)).abs()))
-  lineVisibility.addAssign(step(0.85, sin(uv().x.add(lineSpeed.mul(0.95)).mul(Math.PI * 24)).abs()))
-
-  const lineBottom = step(0.015, uv().y.sub(0.15).abs()).oneMinus()
-  lineBottom.mulAssign(lineVisibility)
+  const lineMask = step(0.065, uv().y.sub(0.18).abs()).oneMinus()
+  line.mulAssign(lineMask)
 
   // Main texture
   const mapUV = uv().toVar()
+  mapUV.y.subAssign(0.08)
   mapUV.x.mulAssign(3)
   mapUV.x.addAssign(time.mul(0.06))
 
@@ -95,9 +87,10 @@ CylinderMaterial.colorNode = Fn(() => {
 
   // Final color
   const col = tex
-  col.addAssign(lineTop)
-  col.addAssign(lineBottom)
+  col.addAssign(line)
   col.assign(mix(black, col, colorFactor))
+
+  // col.mulAssign(noise)
 
   return col
 })()

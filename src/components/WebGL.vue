@@ -22,10 +22,14 @@ import { useGSAP } from '@/composables/useGSAP'
 import { CylinderMaterial } from '@/assets/materials'
 // import { texturLoader } from '@/assets/loaders'
 
-import { INSTANCE_COUNT } from '@/assets/materials/CylinderMaterial'
+import {
+	INSTANCE_COUNT,
+	distortA,
+	distortB,
+} from '@/assets/materials/CylinderMaterial'
 
 const canvasRef = useTemplateRef('canvas')
-let perfPanel, scene, camera, renderer, mesh, controls
+let perfPanel, debugPanel, scene, camera, renderer, mesh, controls
 
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 const { pixelRatio: dpr } = useDevicePixelRatio()
@@ -47,6 +51,8 @@ onMounted(async () => {
 
 	createControls()
 
+	createTimeline()
+
 	gsap.ticker.fps(60)
 
 	gsap.ticker.add(time => {
@@ -56,10 +62,13 @@ onMounted(async () => {
 		renderer.render(scene, camera)
 
 		perfPanel?.end()
+
+		debugPanel?.refresh()
 	})
 
 	if (Object.hasOwn(params, 'debug')) {
-		await import('@/assets/Debug')
+		const { pane } = await import('@/assets/Debug')
+		debugPanel = pane
 
 		if (!renderer.isWebGPURenderer) {
 			const { ThreePerf } = await import('three-perf')
@@ -107,7 +116,7 @@ function createCamera() {
 		100,
 	)
 
-	camera.position.set(0, 0, 4)
+	camera.position.set(0.67, 2.16, 4.44)
 }
 
 async function createRenderer() {
@@ -150,6 +159,40 @@ function createMesh() {
 	}
 
 	scene.add(mesh)
+}
+
+function createTimeline() {
+	const tl = gsap.timeline({
+		repeat: -1,
+		repeatDelay: 1,
+	})
+	tl.addLabel('start')
+
+	tl.fromTo(
+		distortB,
+		{
+			value: 0,
+		},
+		{
+			value: 1,
+			duration: 3,
+			ease: 'power2.inOut',
+		},
+		'start',
+	)
+
+	tl.fromTo(
+		distortA,
+		{
+			value: 0,
+		},
+		{
+			value: 1,
+			duration: 3,
+			ease: 'power2.inOut',
+		},
+		'>1',
+	)
 }
 </script>
 

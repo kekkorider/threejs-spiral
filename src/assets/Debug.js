@@ -2,7 +2,7 @@ import { Pane } from 'tweakpane'
 
 import { distortA, distortB } from '@/assets/materials/CylinderMaterial'
 
-const pane = new Pane({
+export const pane = new Pane({
   container: document.getElementById('tweakpane-container'),
 })
 

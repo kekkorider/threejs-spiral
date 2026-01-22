@@ -19,8 +19,8 @@ import * as THREE from 'three/webgpu'
 import { OrbitControls } from 'three/addons/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
-import { SampleTSLMaterial } from '@/assets/materials'
-import { gltfLoader } from '@/assets/loaders'
+import { CylinderMaterial } from '@/assets/materials'
+// import { texturLoader } from '@/assets/loaders'
 
 const canvasRef = useTemplateRef('canvas')
 let perfPanel, scene, camera, renderer, mesh, controls
@@ -42,8 +42,6 @@ onMounted(async () => {
 	await createRenderer()
 
 	createMesh()
-
-	await loadModel()
 
 	createControls()
 
@@ -93,7 +91,6 @@ watch([windowWidth, windowHeight], value => {
 //
 function updateScene(time = 0) {
 	controls?.update()
-	mesh.rotation.set(time * 0.2, time * 0.13, time * 0.17)
 }
 
 function createScene() {
@@ -119,6 +116,7 @@ async function createRenderer() {
 		powerPreference: 'high-performance',
 	})
 
+	renderer.toneMapping = THREE.ACESFilmicToneMapping
 	renderer.setClearColor(0x121212, 1)
 	renderer.setSize(get(windowWidth), get(windowHeight))
 
@@ -131,27 +129,25 @@ async function createRenderer() {
 	await renderer.init()
 }
 
-async function loadModel() {
-	const gltf = await gltfLoader.load('/monkey.glb')
-	const model = gltf.scene.getObjectByName('Suzanne')
-
-	model.material = SampleTSLMaterial
-	model.position.x = 1
-
-	scene.add(model)
-}
-
 function createControls() {
 	controls = new OrbitControls(camera, renderer.domElement)
 	controls.enableDamping = true
 }
 
 function createMesh() {
-	const geometry = new THREE.BoxGeometry()
-	const material = SampleTSLMaterial
+	const geometry = new THREE.CylinderGeometry(1, 1, 0.36, 64, 1, true)
+	const material = CylinderMaterial
 
-	mesh = new THREE.Mesh(geometry, material)
-	mesh.position.x = -1
+	const COUNT = 16
+
+	mesh = new THREE.InstancedMesh(geometry, material, COUNT)
+
+	const dummyMatrix = new THREE.Matrix4()
+
+	for (let i = 0; i < COUNT; i++) {
+		dummyMatrix.makeTranslation(0, (i - COUNT / 2) * 0.7, 0)
+		mesh.setMatrixAt(i, dummyMatrix)
+	}
 
 	scene.add(mesh)
 }

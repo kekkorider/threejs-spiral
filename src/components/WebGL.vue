@@ -22,6 +22,8 @@ import { useGSAP } from '@/composables/useGSAP'
 import { CylinderMaterial } from '@/assets/materials'
 // import { texturLoader } from '@/assets/loaders'
 
+import { INSTANCE_COUNT } from '@/assets/materials/CylinderMaterial'
+
 const canvasRef = useTemplateRef('canvas')
 let perfPanel, scene, camera, renderer, mesh, controls
 
@@ -138,14 +140,12 @@ function createMesh() {
 	const geometry = new THREE.CylinderGeometry(1, 1, 0.36, 64, 1, true)
 	const material = CylinderMaterial
 
-	const COUNT = 16
-
-	mesh = new THREE.InstancedMesh(geometry, material, COUNT)
+	mesh = new THREE.InstancedMesh(geometry, material, INSTANCE_COUNT)
 
 	const dummyMatrix = new THREE.Matrix4()
 
-	for (let i = 0; i < COUNT; i++) {
-		dummyMatrix.makeTranslation(0, (i - COUNT / 2) * 0.7, 0)
+	for (let i = 0; i < INSTANCE_COUNT; i++) {
+		dummyMatrix.makeTranslation(0, (i - INSTANCE_COUNT / 2) * 0.7 + 0.36, 0)
 		mesh.setMatrixAt(i, dummyMatrix)
 	}
 

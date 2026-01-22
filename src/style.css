@@ -8,8 +8,24 @@ p {
   margin: 0;
 }
 
+#vignette {
+  --hdr-gradient: radial-gradient(
+    farthest-corner circle in oklab,
+    oklch(0% 0.50 340 / 0%) 40% 0%,
+    oklch(0% 0.50 201)      100%
+  );
+  --sdr-gradient: radial-gradient(farthest-corner circle, #21001900 40% 0%, #001634 100%);
+
+  background: var(--hdr-gradient);
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1;
+}
+
 #tweakpane-container {
   position: fixed;
+  z-index: 1001;
   top: 70px;
   right: 15px
 }

@@ -20,12 +20,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
 import { CylinderMaterial } from '@/assets/materials'
-// import { texturLoader } from '@/assets/loaders'
+import { textureLoader } from '@/assets/loaders'
 
 import {
 	INSTANCE_COUNT,
 	distortA,
 	distortB,
+	map as effectMap,
 } from '@/assets/materials/CylinderMaterial'
 
 const canvasRef = useTemplateRef('canvas')
@@ -37,6 +38,8 @@ const params = useUrlSearchParams('history')
 
 const { gsap } = useGSAP()
 
+const textures = new Map()
+
 //
 // Lifecycle
 //
@@ -46,6 +49,7 @@ onMounted(async () => {
 	createScene()
 	createCamera()
 	await createRenderer()
+	await loadTextures()
 
 	createMesh()
 
@@ -140,12 +144,23 @@ async function createRenderer() {
 	await renderer.init()
 }
 
+async function loadTextures() {
+	const map = await textureLoader.load('/map.png')
+
+	map.wrapS = THREE.RepeatWrapping
+	map.colorSpace = THREE.SRGBColorSpace
+
+	textures.set('map', map)
+}
+
 function createControls() {
 	controls = new OrbitControls(camera, renderer.domElement)
 	controls.enableDamping = true
 }
 
 function createMesh() {
+	effectMap.value = textures.get('map')
+
 	const geometry = new THREE.CylinderGeometry(1, 1, 0.36, 64, 1, true)
 	const material = CylinderMaterial
 
@@ -175,7 +190,7 @@ function createTimeline() {
 		},
 		{
 			value: 1,
-			duration: 3,
+			duration: 4,
 			ease: 'power2.inOut',
 		},
 		'start',
@@ -188,7 +203,7 @@ function createTimeline() {
 		},
 		{
 			value: 1,
-			duration: 3,
+			duration: 4,
 			ease: 'power2.inOut',
 		},
 		'>1',

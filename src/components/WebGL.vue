@@ -28,6 +28,7 @@ import {
 	distortB,
 	mapA as effectMapA,
 	mapB as effectMapB,
+	matcap as effectMatcap,
 } from '@/assets/materials/CylinderMaterial'
 
 const canvasRef = useTemplateRef('canvas')
@@ -146,13 +147,18 @@ async function createRenderer() {
 }
 
 async function loadTextures() {
-	const [mapA, mapB] = await textureLoader.load(['/map.png', '/map02.png'])
+	const [mapA, mapB, matcapA] = await textureLoader.load([
+		'/map.png',
+		'/map02.png',
+		'/matcap-1769177254844.png',
+	])
 
 	mapA.wrapS = mapB.wrapS = THREE.RepeatWrapping
-	mapA.colorSpace = mapB.colorSpace = THREE.SRGBColorSpace
+	mapA.colorSpace = mapB.colorSpace = matcapA.colorSpace = THREE.SRGBColorSpace
 
 	textures.set('mapA', mapA)
 	textures.set('mapB', mapB)
+	textures.set('matcapA', matcapA)
 }
 
 function createControls() {
@@ -163,6 +169,7 @@ function createControls() {
 function createMesh() {
 	effectMapA.value = textures.get('mapA')
 	effectMapB.value = textures.get('mapB')
+	effectMatcap.value = textures.get('matcapA')
 
 	const geometry = new THREE.CylinderGeometry(1, 1, 0.36, 64, 1, true)
 	const material = CylinderMaterial

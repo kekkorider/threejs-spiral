@@ -6,7 +6,6 @@ import {
   uniform,
   uv,
   vec2,
-  vec3,
   frontFacing,
   select,
   clamp,
@@ -17,36 +16,38 @@ import {
   cos,
   smoothstep,
   instanceIndex,
-  step,
   float,
   normalWorld,
   cameraPosition,
   dot,
   time,
-  texture
+  texture,
+  matcapUV
 } from 'three/tsl'
 import { MeshBasicNodeMaterial, DoubleSide, DataTexture, RedFormat, FloatType } from 'three/webgpu'
 import { easeInOutQuad } from 'tsl-easings'
-
-export const CylinderMaterial = new MeshBasicNodeMaterial({
-  side: DoubleSide,
-  forceSinglePass: true
-})
 
 const dummyTexture = new DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1)
 dummyTexture.format = RedFormat
 dummyTexture.type = FloatType
 dummyTexture.needsUpdate = true
 
+export const CylinderMaterial = new MeshBasicNodeMaterial({
+  side: DoubleSide,
+  forceSinglePass: true
+})
+
 export const mapA = uniform(dummyTexture)
 export const mapB = uniform(dummyTexture)
+export const matcap = uniform(dummyTexture)
+export const matcapStrength = uniform(0.4)
 export const distortA = uniform(0)
 export const distortB = uniform(0)
-export const fresnelPower = uniform(1.15)
-export const colorA = uniform(color(0.2, 0.4, 0.5))
-export const colorB = uniform(color(0.3, 0.5, 0.2))
-export const colorC = uniform(color(0.9, 0.5, 0.2))
-export const colorD = uniform(color(0.7, 0.7, 0.2))
+export const fresnelPower = uniform(2.3)
+export const colorA = uniform(color(0.59, 0.25, 0.29))
+export const colorB = uniform(color(0.56, 0.27, 0.56))
+export const colorC = uniform(color(1, 1, 1))
+export const colorD = uniform(color(0.02, 0.29, 0.54))
 
 export const INSTANCE_COUNT = 16
 
@@ -83,6 +84,7 @@ CylinderMaterial.positionNode = Fn(() => {
 })()
 
 CylinderMaterial.colorNode = Fn(() => {
+  const matcapTexture = texture(matcap.value, matcapUV).toVec3()
   const black = color(0)
 
   const cameradir = cameraPosition.normalize()
@@ -101,30 +103,33 @@ CylinderMaterial.colorNode = Fn(() => {
 
   const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD)
 
-  // Line
-  const lineMask = step(0.05, uv().y.sub(0.22).abs()).oneMinus()
+  // Lines
+  const lineMask = smoothstep(0.03, 0.04, uv().y.sub(0.22).abs()).oneMinus()
   line.mulAssign(lineMask)
+
+  const lineBottom = smoothstep(0.033, 0.03, uv().y)
 
   // Main texture
   const mapUV = select(frontFacing, uv().toVar(), vec2(uv().x.oneMinus(), uv().y))
   const mapDirection = select(frontFacing, 1, -1)
-  mapUV.y.subAssign(0.08)
+  mapUV.y.subAssign(0.14)
   mapUV.x.mulAssign(3)
   mapUV.x.addAssign(time.mul(0.06).mul(mapDirection))
 
   const texA = texture(mapA.value, mapUV).toVec3()
   const texB = texture(mapB.value, mapUV).toVec3()
 
-  const col = vec3()
+  const col = matcapTexture.mul(matcapStrength)
 
   // Final color
   If(frontFacing, () => {
-    col.assign(texA.toVec3())
+    col.addAssign(texA.toVec3())
   }).Else(() => {
-    col.assign(texB.toVec3())
+    col.addAssign(texB.toVec3())
   })
 
   col.addAssign(line)
+  // col.addAssign(lineBottom)
   col.assign(mix(black, col, colorFactor))
 
   // col.mulAssign(noise)

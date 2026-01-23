@@ -21,7 +21,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
 import { CylinderMaterial } from '@/assets/materials'
-import { textureLoader } from '@/assets/loaders'
+import { textureLoader, lutCubeLoader } from '@/assets/loaders'
 
 import {
 	INSTANCE_COUNT,
@@ -33,6 +33,7 @@ import {
 } from '@/assets/materials/CylinderMaterial'
 
 import { bloomPass } from '@/assets/bloom'
+import { lutPass } from '@/assets/lut'
 
 const canvasRef = useTemplateRef('canvas')
 let perfPanel, debugPanel, scene, camera, renderer, mesh, controls, postprocess
@@ -155,9 +156,14 @@ function createPostprocess() {
 	const scenePass = pass(scene, camera)
 	const scenePassColor = scenePass.getTextureNode('output').toInspector('Color')
 
-	const bloom = bloomPass(scenePassColor).toInspector('Bloom')
+	const lut = lutPass(scenePassColor, textures.get('lut'))
 
-	postprocess.outputNode = scenePassColor.add(bloom)
+	let compose = lut
+
+	const bloom = bloomPass(compose).toInspector('Bloom')
+	compose = compose.add(bloom)
+
+	postprocess.outputNode = compose
 }
 
 async function loadTextures() {
@@ -173,6 +179,9 @@ async function loadTextures() {
 	textures.set('mapA', mapA)
 	textures.set('mapB', mapB)
 	textures.set('matcapA', matcapA)
+
+	const lutTexture = await lutCubeLoader.load('/Remy 24.CUBE')
+	textures.set('lut', lutTexture)
 }
 
 function createControls() {

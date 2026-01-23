@@ -12,6 +12,7 @@ import {
 } from '@/assets/materials/CylinderMaterial'
 
 import { strength, threshold, radius } from '@/assets/bloom'
+import { intensity } from '@/assets/lut'
 
 export const pane = new Pane({
   container: document.getElementById('tweakpane-container'),
@@ -34,4 +35,7 @@ const folderBloom = pane.addFolder({ title: 'Bloom' })
 folderBloom.addBinding(strength, 'value', { label: 'Strength', min: 0, max: 2, step: 0.02 })
 folderBloom.addBinding(threshold, 'value', { label: 'Threshold', min: 0, max: 2, step: 0.02 })
 folderBloom.addBinding(radius, 'value', { label: 'Radius', min: 0, max: 2, step: 0.02 })
+
+const folderLUT = pane.addFolder({ title: 'LUT' })
+folderLUT.addBinding(intensity, 'value', { label: 'Intensity', min: 0, max: 2, step: 0.02 })
 

@@ -36,15 +36,35 @@ import { bloomPass } from '@/assets/bloom'
 import { lutPass } from '@/assets/lut'
 
 const canvasRef = useTemplateRef('canvas')
-let perfPanel, debugPanel, scene, camera, renderer, mesh, controls, postprocess
+let perfPanel,
+	debugPanel,
+	scene,
+	camera,
+	renderer,
+	mesh,
+	controls,
+	postprocess,
+	mouse
 
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 const { pixelRatio: dpr } = useDevicePixelRatio()
 const params = useUrlSearchParams('history')
 
-const { gsap } = useGSAP()
+const { gsap, Observer } = useGSAP()
 
 const textures = new Map()
+
+const isDebug = Object.hasOwn(params, 'debug')
+const rotationOffset = { x: 0, y: 0 }
+
+const xTo = gsap.quickTo(rotationOffset, 'x', {
+	duration: 1,
+	ease: 'power2.out',
+})
+const yTo = gsap.quickTo(rotationOffset, 'y', {
+	duration: 1,
+	ease: 'power2.out',
+})
 
 //
 // Lifecycle
@@ -58,7 +78,8 @@ onMounted(async () => {
 	await loadTextures()
 
 	createMesh()
-	createControls()
+	!!isDebug && createControls()
+	!!!isDebug && createMouse()
 	createTimeline()
 	createPostprocess()
 
@@ -112,6 +133,9 @@ watch([windowWidth, windowHeight], value => {
 //
 function updateScene(time = 0) {
 	controls?.update()
+	!!!isDebug && camera.lookAt(scene.position)
+
+	mesh.rotation.set(rotationOffset.y * 0.2, rotationOffset.x * 0.3, 0)
 }
 
 function createScene() {
@@ -241,6 +265,46 @@ function createTimeline() {
 		},
 		'>1',
 	)
+}
+
+function createMouse() {
+	const mm = gsap.matchMedia()
+
+	mm.add('(pointer: fine)', () => {
+		mouse = Observer.create({
+			target: get('canvas'),
+			type: 'pointer',
+			onMove: update,
+		})
+
+		return () => {
+			mouse?.kill()
+		}
+	})
+
+	mm.add('(pointer: coarse)', () => {
+		mouse = Observer.create({
+			target: get('canvas'),
+			type: 'touch',
+			onDrag: update,
+		})
+
+		return () => {
+			mouse?.kill()
+		}
+	})
+
+	function update(evt) {
+		const { x, y } = evt
+
+		const ndc = {
+			x: (x / get(windowWidth)) * 2 - 1,
+			y: -(y / get(windowHeight)) * 2 + 1,
+		}
+
+		xTo(ndc.x)
+		yTo(ndc.y)
+	}
 }
 </script>
 

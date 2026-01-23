@@ -1,5 +1,11 @@
 import { gsap } from 'gsap'
+import { Observer } from 'gsap/Observer'
 
 export function useGSAP() {
-  return { gsap }
+  gsap.registerPlugin(Observer)
+
+  return {
+    gsap,
+    Observer
+  }
 }

@@ -16,6 +16,7 @@ import {
 	get,
 } from '@vueuse/core'
 import * as THREE from 'three/webgpu'
+import { pass } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
@@ -31,8 +32,10 @@ import {
 	matcap as effectMatcap,
 } from '@/assets/materials/CylinderMaterial'
 
+import { bloomPass } from '@/assets/bloom'
+
 const canvasRef = useTemplateRef('canvas')
-let perfPanel, debugPanel, scene, camera, renderer, mesh, controls
+let perfPanel, debugPanel, scene, camera, renderer, mesh, controls, postprocess
 
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 const { pixelRatio: dpr } = useDevicePixelRatio()
@@ -54,10 +57,9 @@ onMounted(async () => {
 	await loadTextures()
 
 	createMesh()
-
 	createControls()
-
 	createTimeline()
+	createPostprocess()
 
 	gsap.ticker.fps(60)
 
@@ -65,7 +67,8 @@ onMounted(async () => {
 		perfPanel?.begin()
 
 		updateScene(time)
-		renderer.render(scene, camera)
+		// renderer.render(scene, camera)
+		postprocess.render()
 
 		perfPanel?.end()
 
@@ -144,6 +147,17 @@ async function createRenderer() {
 	}
 
 	await renderer.init()
+}
+
+function createPostprocess() {
+	postprocess = new THREE.PostProcessing(renderer)
+
+	const scenePass = pass(scene, camera)
+	const scenePassColor = scenePass.getTextureNode('output').toInspector('Color')
+
+	const bloom = bloomPass(scenePassColor).toInspector('Bloom')
+
+	postprocess.outputNode = scenePassColor.add(bloom)
 }
 
 async function loadTextures() {

@@ -1,4 +1,30 @@
-import { Fn, positionLocal, positionWorld, uniform, uv, vec2, vec3, clamp, mx_cell_noise_float, color, mix, mul, cos, smoothstep, instanceIndex, step, float, normalWorld, cameraPosition, dot, time, texture } from 'three/tsl'
+import {
+  Fn,
+  If,
+  positionLocal,
+  positionWorld,
+  uniform,
+  uv,
+  vec2,
+  vec3,
+  frontFacing,
+  select,
+  clamp,
+  mx_cell_noise_float,
+  color,
+  mix,
+  mul,
+  cos,
+  smoothstep,
+  instanceIndex,
+  step,
+  float,
+  normalWorld,
+  cameraPosition,
+  dot,
+  time,
+  texture
+} from 'three/tsl'
 import { MeshBasicNodeMaterial, DoubleSide, DataTexture, RedFormat, FloatType } from 'three/webgpu'
 
 export const CylinderMaterial = new MeshBasicNodeMaterial({
@@ -11,7 +37,8 @@ dummyTexture.format = RedFormat
 dummyTexture.type = FloatType
 dummyTexture.needsUpdate = true
 
-export const map = uniform(dummyTexture)
+export const mapA = uniform(dummyTexture)
+export const mapB = uniform(dummyTexture)
 export const distortA = uniform(0)
 export const distortB = uniform(0)
 export const fresnelPower = uniform(1.15)
@@ -78,15 +105,24 @@ CylinderMaterial.colorNode = Fn(() => {
   line.mulAssign(lineMask)
 
   // Main texture
-  const mapUV = uv().toVar()
+  const mapUV = select(frontFacing, uv().toVar(), vec2(uv().x.oneMinus(), uv().y))
+  const mapDirection = select(frontFacing, 1, -1)
   mapUV.y.subAssign(0.08)
   mapUV.x.mulAssign(3)
-  mapUV.x.addAssign(time.mul(0.06))
+  mapUV.x.addAssign(time.mul(0.06).mul(mapDirection))
 
-  const tex = texture(map.value, mapUV).toVec3()
+  const texA = texture(mapA.value, mapUV).toVec3()
+  const texB = texture(mapB.value, mapUV).toVec3()
+
+  const col = vec3()
 
   // Final color
-  const col = tex
+  If(frontFacing, () => {
+    col.assign(texA.toVec3())
+  }).Else(() => {
+    col.assign(texB.toVec3())
+  })
+
   col.addAssign(line)
   col.assign(mix(black, col, colorFactor))
 

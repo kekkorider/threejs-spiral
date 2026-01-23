@@ -40,7 +40,7 @@ export const CylinderMaterial = new MeshBasicNodeMaterial({
 export const mapA = uniform(dummyTexture)
 export const mapB = uniform(dummyTexture)
 export const matcap = uniform(dummyTexture)
-export const matcapStrength = uniform(0.4)
+export const matcapStrength = uniform(0.09)
 export const distortA = uniform(0)
 export const distortB = uniform(0)
 export const fresnelPower = uniform(2.3)
@@ -103,7 +103,7 @@ CylinderMaterial.colorNode = Fn(() => {
 
   // Line
   const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD).mul(4)
-  const lineMask = smoothstep(0.03, 0.04, uv().y.sub(0.22).abs()).oneMinus()
+  const lineMask = smoothstep(0.03, 0.04, uv().y.sub(0.18).abs()).oneMinus()
   line.mulAssign(lineMask)
 
   // Main texture
@@ -120,9 +120,9 @@ CylinderMaterial.colorNode = Fn(() => {
 
   // Final color
   If(frontFacing, () => {
-    col.addAssign(texA.toVec3())
+    col.addAssign(matcapTexture.mul(texA.toVec3()))
   }).Else(() => {
-    col.addAssign(texB.toVec3())
+    col.addAssign(matcapTexture.mul(texB.toVec3()))
   })
 
   col.addAssign(line)

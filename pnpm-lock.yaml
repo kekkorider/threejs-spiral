@@ -17,6 +17,9 @@ importers:
       three:
         specifier: ^0.182.0
         version: 0.182.0
+      tsl-easings:
+        specifier: ^0.0.1
+        version: 0.0.1
       tweakpane:
         specifier: ^4.0.5
         version: 4.0.5
@@ -597,6 +600,9 @@ packages:
   troika-worker-utils@0.52.0:
     resolution: {integrity: sha512-W1CpvTHykaPH5brv5VHLfQo9D1OYuo0cSBEUQFFT/nBUzM8iD6Lq2/tgG/f1OelbAS1WtaTPQzE5uM49egnngw==}
 
+  tsl-easings@0.0.1:
+    resolution: {integrity: sha512-G/PC7A4snJ7Z9H+oJvcyItemDs23513JLOrr9H+FqNdIoQu6QUF+j+pElTIquwosvJiOGqsH7nk+lh/x3VqoYA==}
+
   tweakpane@3.1.10:
     resolution: {integrity: sha512-rqwnl/pUa7+inhI2E9ayGTqqP0EPOOn/wVvSWjZsRbZUItzNShny7pzwL3hVlaN4m9t/aZhsP0aFQ9U5VVR2VQ==}
 
@@ -1123,6 +1129,8 @@ snapshots:
       three: 0.182.0
 
   troika-worker-utils@0.52.0: {}
+
+  tsl-easings@0.0.1: {}
 
   tweakpane@3.1.10: {}
 

@@ -26,6 +26,7 @@ import {
   texture
 } from 'three/tsl'
 import { MeshBasicNodeMaterial, DoubleSide, DataTexture, RedFormat, FloatType } from 'three/webgpu'
+import { easeInOutQuad } from 'tsl-easings'
 
 export const CylinderMaterial = new MeshBasicNodeMaterial({
   side: DoubleSide,
@@ -65,12 +66,12 @@ CylinderMaterial.positionNode = Fn(() => {
   const instanceT = i.div(float(INSTANCE_COUNT).sub(1).max(1))
 
   // per-instance delayed progress
-  const localDistortA = distortA
+  const localDistortA = easeInOutQuad(distortA)
     .sub(instanceT)
     .div(float(1).sub(instanceT))
     .clamp(0, 1)
 
-  const localDistortB = distortB
+  const localDistortB = easeInOutQuad(distortB)
     .sub(instanceT)
     .div(float(1).sub(instanceT))
     .clamp(0, 1)
@@ -101,7 +102,7 @@ CylinderMaterial.colorNode = Fn(() => {
   const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD)
 
   // Line
-  const lineMask = step(0.065, uv().y.sub(0.18).abs()).oneMinus()
+  const lineMask = step(0.05, uv().y.sub(0.22).abs()).oneMinus()
   line.mulAssign(lineMask)
 
   // Main texture

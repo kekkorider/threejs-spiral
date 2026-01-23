@@ -33,8 +33,8 @@ folderLine.addBinding(colorD, 'value', { label: 'Color D', min: 0, max: 1, step:
 
 const folderBloom = pane.addFolder({ title: 'Bloom' })
 folderBloom.addBinding(strength, 'value', { label: 'Strength', min: 0, max: 2, step: 0.02 })
-folderBloom.addBinding(threshold, 'value', { label: 'Threshold', min: 0, max: 2, step: 0.02 })
-folderBloom.addBinding(radius, 'value', { label: 'Radius', min: 0, max: 2, step: 0.02 })
+folderBloom.addBinding(threshold, 'value', { label: 'Threshold', min: 0, max: 1, step: 0.02 })
+folderBloom.addBinding(radius, 'value', { label: 'Radius', min: 0, max: 1, step: 0.01 })
 
 const folderLUT = pane.addFolder({ title: 'LUT' })
 folderLUT.addBinding(intensity, 'value', { label: 'Intensity', min: 0, max: 2, step: 0.02 })

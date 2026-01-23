@@ -101,13 +101,10 @@ CylinderMaterial.colorNode = Fn(() => {
   const noise = mx_cell_noise_float(uv().mul(vec2(1, 11))).toVar()
   noise.x.assign(clamp(noise.x, 0.2, 0.95))
 
-  const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD)
-
-  // Lines
+  // Line
+  const line = palette(uv().x.add(time.mul(0.06)).mul(10), colorA, colorB, colorC, colorD).mul(4)
   const lineMask = smoothstep(0.03, 0.04, uv().y.sub(0.22).abs()).oneMinus()
   line.mulAssign(lineMask)
-
-  const lineBottom = smoothstep(0.033, 0.03, uv().y)
 
   // Main texture
   const mapUV = select(frontFacing, uv().toVar(), vec2(uv().x.oneMinus(), uv().y))
@@ -129,10 +126,7 @@ CylinderMaterial.colorNode = Fn(() => {
   })
 
   col.addAssign(line)
-  // col.addAssign(lineBottom)
   col.assign(mix(black, col, colorFactor))
-
-  // col.mulAssign(noise)
 
   return col
 })()
